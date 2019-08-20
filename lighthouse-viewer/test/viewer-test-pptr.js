@@ -151,7 +151,16 @@ describe('Lighthouse Viewer', () => {
       contentType: 'application/json',
       body: JSON.stringify({lighthouseResult: sampleLhrJson}),
     };
+    const badPsiResponse = {
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({error: {errorMessage: 'Test error'}}),
+    };
 
+    // Sniffs just the request made to the PSI API. All other requests
+    // fall through.
+    // To set the mocked PSI response, assign `psiResponse`.
+    // To read the intercepted request, use `interceptedRequest`.
     function onRequest(request) {
       if (request.url().includes('https://www.googleapis.com')) {
         interceptedRequest = request;
@@ -181,6 +190,7 @@ describe('Lighthouse Viewer', () => {
 
       const url = `${viewerUrl}?psiurl=https://www.example.com`;
       await viewerPage.goto(url);
+
       // Wait for report to render.
       await viewerPage.waitForSelector('.lh-columns');
 
@@ -216,7 +226,8 @@ describe('Lighthouse Viewer', () => {
 
       const url = `${viewerUrl}?psiurl=https://www.example.com&category=seo&category=pwa`;
       await viewerPage.goto(url);
-      // Wait for report to render.
+
+      // Wait for report to render.call out to PSI with specified categories
       await viewerPage.waitForSelector('.lh-columns');
 
       const interceptedUrl = new URL(interceptedRequest.url());
@@ -229,6 +240,20 @@ describe('Lighthouse Viewer', () => {
 
       // No errors.
       assert.deepStrictEqual(pageErrors, []);
+    });
+
+    it('should handle errors from the API', async () => {
+      psiResponse = badPsiResponse;
+
+      const url = `${viewerUrl}?psiurl=https://www.example.com`;
+      await viewerPage.goto(url);
+
+      // Wait for error.
+      const errorEl = await viewerPage.waitForSelector('#lh-log.show');
+      const errorMessage = await viewerPage.evaluate(errorEl => errorEl.textContent, errorEl);
+
+      // One error.
+      expect(pageErrors).toHaveLength(1);
     });
   });
 });
