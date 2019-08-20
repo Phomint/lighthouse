@@ -90,6 +90,7 @@ class LighthouseReportViewer {
 
   /**
    * Attempts to pull gist id from URL and render report from it.
+   * @return {Promise<void>}
    * @private
    */
   _loadFromDeepLink() {
@@ -98,7 +99,7 @@ class LighthouseReportViewer {
     const gistId = params.get('gist');
     const psiurl = params.get('psiurl');
 
-    if (!gistId && !psiurl) return;
+    if (!gistId && !psiurl) return Promise.resolve();
 
     this._toggleLoadingBlur(true);
     let loadPromise = Promise.resolve();

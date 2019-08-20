@@ -34,7 +34,7 @@ http://localhost:8000/?psiurl=https://www.example.com&category=pwa&category=seo
 
 Options:
 
-`url` - URL to audit
+`psiurl` - URL to audit
 `category` - Category to enable. One per category.
 `strategy` - mobile, desktop
 `locale` - locale to render report with
