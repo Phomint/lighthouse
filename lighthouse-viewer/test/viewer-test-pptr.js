@@ -17,9 +17,11 @@ const portNumber = 10200;
 const viewerUrl = `http://localhost:${portNumber}/dist/viewer/index.html`;
 const sampleLhr = __dirname + '/../../lighthouse-core/test/results/sample_v2.json';
 
-const config = require(path.resolve(__dirname, '../../lighthouse-core/config/default-config.js'));
-const lighthouseCategories = Object.keys(config.categories);
-const getAuditsOfCategory = category => config.categories[category].auditRefs;
+const Config = require('../../lighthouse-core/config/config.js');
+const defaultConfig =
+  require(path.resolve(__dirname, '../../lighthouse-core/config/default-config.js'));
+const lighthouseCategories = Object.keys(defaultConfig.categories);
+const getAuditsOfCategory = category => defaultConfig.categories[category].auditRefs;
 
 // TODO: should be combined in some way with clients/test/extension/extension-test.js
 describe('Lighthouse Viewer', () => {
@@ -196,8 +198,10 @@ describe('Lighthouse Viewer', () => {
 
       // Intercept and respond with sample lhr.
       const interceptedUrl = new URL(interceptedRequest.url());
-      expect(interceptedUrl.origin + interceptedUrl.pathname).toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
+      expect(interceptedUrl.origin + interceptedUrl.pathname)
+        .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
       expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
+      // Order in the api call is important to PSI!
       expect(interceptedUrl.searchParams.getAll('category')).toEqual([
         'performance',
         'accessibility',
@@ -206,13 +210,17 @@ describe('Lighthouse Viewer', () => {
         'pwa',
       ]);
 
+      // Confirm that all default categories are used.
+      const defaultCategories = Config.getCategories(defaultConfig).map(c => c.id).sort();
+      expect(interceptedUrl.searchParams.getAll('category').sort()).toEqual(defaultCategories);
+
       // No errors.
       assert.deepStrictEqual(pageErrors, []);
 
       // All categories.
-      const categories = await getCategoryElementsIds();
+      const categoryElementIds = await getCategoryElementsIds();
       assert.deepStrictEqual(
-        categories.sort(),
+        categoryElementIds.sort(),
         lighthouseCategories.sort(),
         `all categories not found`
       );
@@ -231,7 +239,8 @@ describe('Lighthouse Viewer', () => {
       await viewerPage.waitForSelector('.lh-columns');
 
       const interceptedUrl = new URL(interceptedRequest.url());
-      expect(interceptedUrl.origin + interceptedUrl.pathname).toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
+      expect(interceptedUrl.origin + interceptedUrl.pathname)
+        .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
       expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
       expect(interceptedUrl.searchParams.getAll('category')).toEqual([
         'seo',
