@@ -142,14 +142,22 @@ describe('Lighthouse Viewer', () => {
   });
 
   describe('PSI', () => {
-    let onApiRequestInterception;
-    let apiRequestInterceptionResolve;
+    let interceptedRequest;
+    let psiResponse;
 
-    function onRequest(interceptedRequest) {
-      if (interceptedRequest.url().includes('https://www.googleapis.com')) {
-        apiRequestInterceptionResolve(interceptedRequest);
+    const sampleLhrJson = JSON.parse(fs.readFileSync(sampleLhr, 'utf-8'));
+    const goodPsiResponse = {
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({lighthouseResult: sampleLhrJson}),
+    };
+
+    function onRequest(request) {
+      if (request.url().includes('https://www.googleapis.com')) {
+        interceptedRequest = request;
+        request.respond(psiResponse);
       } else {
-        interceptedRequest.continue();
+        request.continue();
       }
     }
 
@@ -164,15 +172,19 @@ describe('Lighthouse Viewer', () => {
     });
 
     beforeEach(() => {
-      onApiRequestInterception = new Promise(resolve => apiRequestInterceptionResolve = resolve);
+      interceptedRequest = undefined;
+      psiResponse = undefined;
     });
 
     it('should call out to PSI with all categories by default', async () => {
+      psiResponse = goodPsiResponse;
+
       const url = `${viewerUrl}?psiurl=https://www.example.com`;
       await viewerPage.goto(url);
+      // Wait for report to render.
+      await viewerPage.waitForSelector('.lh-columns');
 
       // Intercept and respond with sample lhr.
-      const interceptedRequest = await onApiRequestInterception;
       const interceptedUrl = new URL(interceptedRequest.url());
       expect(interceptedUrl.origin + interceptedUrl.pathname).toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
       expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
@@ -183,18 +195,6 @@ describe('Lighthouse Viewer', () => {
         'best-practices',
         'pwa',
       ]);
-
-      const psiResponse = {
-        lighthouseResult: JSON.parse(fs.readFileSync(sampleLhr, 'utf-8')),
-      };
-      await interceptedRequest.respond({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(psiResponse),
-      });
-
-      // Wait for report to render.
-      await viewerPage.waitForSelector('.lh-columns');
 
       // No errors.
       assert.deepStrictEqual(pageErrors, []);
@@ -211,11 +211,14 @@ describe('Lighthouse Viewer', () => {
       expect(await viewerPage.url()).toEqual(url);
     });
 
-    it('should call out to PSI with specified categoeries', async () => {
+    it('should call out to PSI with specified categories', async () => {
+      psiResponse = goodPsiResponse;
+
       const url = `${viewerUrl}?psiurl=https://www.example.com&category=seo&category=pwa`;
       await viewerPage.goto(url);
+      // Wait for report to render.
+      await viewerPage.waitForSelector('.lh-columns');
 
-      const interceptedRequest = await onApiRequestInterception;
       const interceptedUrl = new URL(interceptedRequest.url());
       expect(interceptedUrl.origin + interceptedUrl.pathname).toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
       expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
@@ -224,8 +227,8 @@ describe('Lighthouse Viewer', () => {
         'pwa',
       ]);
 
-      // Just wanted to check the params are correct, let's abort. Previous test does more of an end-to-end test.
-      interceptedRequest.abort();
+      // No errors.
+      assert.deepStrictEqual(pageErrors, []);
     });
   });
 });
