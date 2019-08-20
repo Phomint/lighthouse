@@ -199,15 +199,32 @@ describe('Lighthouse Viewer', () => {
       const interceptedUrl = new URL(interceptedRequest.url());
       expect(interceptedUrl.origin + interceptedUrl.pathname)
         .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
-      expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
-      // Order in the api call is important to PSI!
-      expect(interceptedUrl.searchParams.getAll('category')).toEqual([
-        'performance',
-        'accessibility',
-        'seo',
-        'best-practices',
-        'pwa',
-      ]);
+
+      // Could use `Object.fromEntries` when we move minimal Node version to 12.
+      const params = {
+        key: interceptedUrl.searchParams.get('key'),
+        url: interceptedUrl.searchParams.get('url'),
+        category: interceptedUrl.searchParams.getAll('category'),
+        strategy: interceptedUrl.searchParams.get('strategy'),
+        locale: interceptedUrl.searchParams.get('locale'),
+        utm_source: interceptedUrl.searchParams.get('utm_source'),
+      };
+      expect(params).toEqual({
+        key: 'AIzaSyAjcDRNN9CX9dCazhqI4lGR7yyQbkd_oYE',
+        url: 'https://www.example.com',
+        // Order in the api call is important to PSI!
+        category: [
+          'performance',
+          'accessibility',
+          'seo',
+          'best-practices',
+          'pwa',
+        ],
+        strategy: 'mobile',
+        // These values aren't set by default.
+        locale: null,
+        utm_source: null,
+      });
 
       // Confirm that all default categories are used.
       const defaultCategories = Config.getCategories(defaultConfig).map(c => c.id).sort();
@@ -240,11 +257,18 @@ describe('Lighthouse Viewer', () => {
       const interceptedUrl = new URL(interceptedRequest.url());
       expect(interceptedUrl.origin + interceptedUrl.pathname)
         .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
-      expect(interceptedUrl.searchParams.get('url')).toEqual('https://www.example.com');
-      expect(interceptedUrl.searchParams.getAll('category')).toEqual([
-        'seo',
-        'pwa',
-      ]);
+
+      const params = {
+        url: interceptedUrl.searchParams.get('url'),
+        category: interceptedUrl.searchParams.getAll('category'),
+      };
+      expect(params).toEqual({
+        url: 'https://www.example.com',
+        category: [
+          'seo',
+          'pwa',
+        ],
+      });
 
       // No errors.
       assert.deepStrictEqual(pageErrors, []);
