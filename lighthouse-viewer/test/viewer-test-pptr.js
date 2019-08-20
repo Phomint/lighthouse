@@ -156,7 +156,7 @@ describe('Lighthouse Viewer', () => {
     const badPsiResponse = {
       status: 500,
       contentType: 'application/json',
-      body: JSON.stringify({error: {errorMessage: 'Test error'}}),
+      body: JSON.stringify({error: {message: 'Test error'}}),
     };
 
     // Sniffs just the request made to the PSI API. All other requests
@@ -196,7 +196,6 @@ describe('Lighthouse Viewer', () => {
       // Wait for report to render.
       await viewerPage.waitForSelector('.lh-columns');
 
-      // Intercept and respond with sample lhr.
       const interceptedUrl = new URL(interceptedRequest.url());
       expect(interceptedUrl.origin + interceptedUrl.pathname)
         .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
@@ -260,9 +259,11 @@ describe('Lighthouse Viewer', () => {
       // Wait for error.
       const errorEl = await viewerPage.waitForSelector('#lh-log.show');
       const errorMessage = await viewerPage.evaluate(errorEl => errorEl.textContent, errorEl);
+      expect(errorMessage).toBe('Test error');
 
       // One error.
       expect(pageErrors).toHaveLength(1);
+      expect(pageErrors[0].message).toContain('Test error');
     });
   });
 });

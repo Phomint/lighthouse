@@ -18,6 +18,15 @@ const PSI_DEFAULT_CATEGORIES = [
 ];
 
 /**
+ * @typedef PSIParams
+ * @property {string} url
+ * @property {string[]=} category
+ * @property {string=} locale
+ * @property {string=} strategy
+ * @property {string=} utm_source
+ */
+
+/**
  * Wrapper around the PSI API for fetching LHR.
  */
 class PSIApi {
@@ -29,7 +38,7 @@ class PSIApi {
     const apiUrl = new URL(PSI_URL);
     // eslint-disable-next-line prefer-const
     for (let [name, value] of Object.entries(params)) {
-      if (name === 'category') continue;
+      if (Array.isArray(value)) continue;
       if (name === 'strategy') value = value || 'mobile';
       if (typeof value !== 'undefined') apiUrl.searchParams.append(name, value);
     }

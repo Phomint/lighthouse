@@ -7,6 +7,8 @@
 
 /* global DOM, ViewerUIFeatures, ReportRenderer, DragAndDrop, GithubApi, PSIApi, logger, idbKeyval */
 
+/** @typedef {import('./psi-api').PSIParams} PSIParams */
+
 /**
  * Guaranteed context.querySelector. Always returns an element or throws if
  * nothing matches query.
