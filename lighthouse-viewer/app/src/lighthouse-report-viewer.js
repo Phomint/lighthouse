@@ -284,7 +284,6 @@ class LighthouseReportViewer {
         window.ga('send', 'event', 'report', 'created');
       }
 
-      this._reportIsFromGist = true;
       history.pushState({}, '', `${LighthouseReportViewer.APP_URL}?gist=${id}`);
 
       return id;
