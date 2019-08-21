@@ -246,7 +246,7 @@ describe('Lighthouse Viewer', () => {
     it('should call out to PSI with specified categories', async () => {
       psiResponse = goodPsiResponse;
 
-      const url = `${viewerUrl}?psiurl=https://www.example.com&category=seo&category=pwa`;
+      const url = `${viewerUrl}?psiurl=https://www.example.com&category=seo&category=pwa&utm_source=utm&locale=es`;
       await viewerPage.goto(url);
 
       // Wait for report to render.call out to PSI with specified categories
@@ -268,9 +268,8 @@ describe('Lighthouse Viewer', () => {
           'seo',
           'pwa',
         ],
-        // These values aren't set by default.
-        locale: null,
-        utm_source: null,
+        locale: 'es',
+        utm_source: 'utm',
       });
 
       // No errors.
