@@ -21,23 +21,25 @@ const MESSAGE_INSTANCE_ID_REGEX = /(.* \| .*) # (\d+)$/;
 const MESSAGE_INSTANCE_ID_QUICK_REGEX = / # \d+$/;
 
 (() => {
-  // Node usually doesn't come with the locales we want built-in, so load the polyfill if we can.
+  // Node without full-icu doesn't come with the locales we want built-in. Load the polyfill if needed.
+  // See https://nodejs.org/api/intl.html#intl_options_for_building_node_js
+  // The bundler should remove these dependencies, so this will be a no-op in the browser.
 
-  try {
-    // @ts-ignore
-    const IntlPolyfill = require('intl');
-    // In browser environments where we don't need the polyfill, this won't exist
-    if (!IntlPolyfill.NumberFormat) return;
+  // @ts-ignore
+  const IntlPolyfill = require('intl');
 
+  // Check if global implementation supports a minimum set of locales.
+  const minimumLocales = ['en', 'es', 'ru', 'zh'];
+  const supportedLocales = Intl.NumberFormat.supportedLocalesOf(minimumLocales);
+
+  if (supportedLocales.length !== minimumLocales.length) {
     Intl.NumberFormat = IntlPolyfill.NumberFormat;
     Intl.DateTimeFormat = IntlPolyfill.DateTimeFormat;
-
-    // Intl.PluralRules polyfilled on require().
-    // @ts-ignore
-    require('intl-pluralrules');
-  } catch (_) {
-    log.warn('i18n', 'Failed to install `intl` polyfill');
   }
+
+  // intl-pluralrules polyfills itself (with check) on require().
+  // @ts-ignore
+  require('intl-pluralrules');
 })();
 
 
