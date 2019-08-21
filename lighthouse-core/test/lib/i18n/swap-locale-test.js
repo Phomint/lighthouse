@@ -31,7 +31,7 @@ describe('swap-locale', () => {
     expect(lhrEn.audits['render-blocking-resources'].displayValue)
       .toEqual('Potential savings of 1,130 ms');
     expect(lhrEs.audits['render-blocking-resources'].displayValue)
-      .toEqual('Potential savings of 1.130 ms');
+      .toEqual('Ahorro potencial de 1.130 ms');
   });
 
   it('can roundtrip back to english correctly', () => {
