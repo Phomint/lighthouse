@@ -17,7 +17,6 @@ const portNumber = 10200;
 const viewerUrl = `http://localhost:${portNumber}/dist/viewer/index.html`;
 const sampleLhr = __dirname + '/../../lighthouse-core/test/results/sample_v2.json';
 
-const Config = require('../../lighthouse-core/config/config.js');
 const defaultConfig =
   require(path.resolve(__dirname, '../../lighthouse-core/config/default-config.js'));
 const lighthouseCategories = Object.keys(defaultConfig.categories);
@@ -200,7 +199,6 @@ describe('Lighthouse Viewer', () => {
       expect(interceptedUrl.origin + interceptedUrl.pathname)
         .toEqual('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
 
-      // Could use `Object.fromEntries` when we move minimal Node version to 12.
       const params = {
         key: interceptedUrl.searchParams.get('key'),
         url: interceptedUrl.searchParams.get('url'),
@@ -227,7 +225,7 @@ describe('Lighthouse Viewer', () => {
       });
 
       // Confirm that all default categories are used.
-      const defaultCategories = Config.getCategories(defaultConfig).map(c => c.id).sort();
+      const defaultCategories = Object.keys(defaultConfig.categories).sort();
       expect(interceptedUrl.searchParams.getAll('category').sort()).toEqual(defaultCategories);
 
       // No errors.
@@ -261,6 +259,8 @@ describe('Lighthouse Viewer', () => {
       const params = {
         url: interceptedUrl.searchParams.get('url'),
         category: interceptedUrl.searchParams.getAll('category'),
+        locale: interceptedUrl.searchParams.get('locale'),
+        utm_source: interceptedUrl.searchParams.get('utm_source'),
       };
       expect(params).toEqual({
         url: 'https://www.example.com',
@@ -268,6 +268,9 @@ describe('Lighthouse Viewer', () => {
           'seo',
           'pwa',
         ],
+        // These values aren't set by default.
+        locale: null,
+        utm_source: null,
       });
 
       // No errors.
